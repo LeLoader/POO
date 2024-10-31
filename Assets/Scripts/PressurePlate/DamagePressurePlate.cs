@@ -3,9 +3,9 @@ using UnityEngine;
 public class DamagePressurePlate : BasePressurePlate
 {
     [SerializeField] int _damage;
-    protected override void Activate(Collider target)
+    protected override void Activate(Collider other)
     {
-        if (target.TryGetComponent<DamageListener>(out DamageListener damageListener))
+        if (other.gameObject.TryGetComponent<DamageListener>(out DamageListener damageListener))
         {
             damageListener.TakeDamage(_damage);
         }

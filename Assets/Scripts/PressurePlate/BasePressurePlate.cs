@@ -15,6 +15,7 @@ public abstract class BasePressurePlate : MonoBehaviour
     {
         targetPos = transform.position;
     }
+    
 
     private void OnTriggerEnter(Collider other)
     {
@@ -43,7 +44,7 @@ public abstract class BasePressurePlate : MonoBehaviour
         }
     }
 
-    protected virtual void Activate(Collider target)
+    protected virtual void Activate(Collider othert)
     {
         OnPress?.Invoke();
     }

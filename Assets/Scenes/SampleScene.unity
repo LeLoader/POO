@@ -1714,7 +1714,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bea1860ed755dc04b9f9b5666586e415, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _animator: {fileID: 0}
 --- !u!1 &1166440971
 GameObject:
   m_ObjectHideFlags: 0
@@ -2333,8 +2332,8 @@ MonoBehaviour:
   OnPress:
     m_PersistentCalls:
       m_Calls: []
-  timer: 5
-  _speed: 5
+  _timer: 5
+  _speed: 3
 --- !u!4 &1328336870
 Transform:
   m_ObjectHideFlags: 0
@@ -7471,6 +7470,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1725872020}
   - component: {fileID: 1725872021}
+  - component: {fileID: 1725872022}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -7516,6 +7516,19 @@ CapsuleCollider:
   m_Height: 1.5
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1725872022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725872019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ad51236487995047b95ab802b0be71c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <PlayerController>k__BackingField: {fileID: 1316726333}
 --- !u!1 &1788637054
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,14 +4,13 @@ using UnityEngine;
 
 public class SpeedPressurePlate : BasePressurePlate
 {
-    [SerializeField] float timer;
+    [SerializeField] float _timer;
     [SerializeField] int _speed;
-    protected override void Activate(Collider target)
+    protected override void Activate(Collider other)
     {
-        if (target.TryGetComponent<PlayerController>(out PlayerController playerController))
+        if (other.gameObject.TryGetComponent<ColliderListener>(out ColliderListener colliderListener))
         {
-            Debug.Log("found player controller");
-            StartCoroutine(AddTempMoveSpeed(playerController));   
+            StartCoroutine(AddTempMoveSpeed(colliderListener.PlayerController));   
         }
     }
 
@@ -19,7 +18,7 @@ public class SpeedPressurePlate : BasePressurePlate
     {
         float time = 0f;
         playerController.MovementSpeed += _speed;
-        while (time < timer)
+        while (time < _timer)
         {
             time += Time.deltaTime;
             yield return null;
