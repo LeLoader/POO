@@ -9,18 +9,32 @@ using Random = UnityEngine.Random;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] InputActionAsset IAA_Player;
     [SerializeField] InputActionReference IA_moveAction;
     [SerializeField] InputActionReference IA_attackAction;
     [SerializeField] CinemachineCamera _camera;
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] GameObject _playerObject;
     [SerializeField] Animator _animator;
-    [SerializeField] AnimatorController _animatorController;
     [SerializeField] Health _health;
-    [SerializeField] DamageSource _weapon;
+    [SerializeField] Weapon _weapon;
 
-    [SerializeField] float _movementSpeed;
-    [SerializeField] float _rotationSpeed;
+    [SerializeField, Tooltip("In m/s")] int _movementSpeed;
+    public int MovementSpeed { 
+        get 
+        { 
+            return _movementSpeed; 
+        }
+        set 
+        {
+            if (value > 0)
+            {
+                _movementSpeed = value;
+            }
+        }
+    }
+
+    [SerializeField, Tooltip("In deg/s")] int _rotationSpeed;
     float _rotationTimer;
     Vector3 _moveDirection = new();
     Vector3 _wantedDirection = new();
@@ -31,8 +45,11 @@ public class PlayerController : MonoBehaviour
         IA_moveAction.action.started += StartMove;
         IA_moveAction.action.performed += PerformMove;
         IA_moveAction.action.canceled += StopMove;
-        IA_attackAction.action.started += AttackStarted;
-
+        if(_weapon != null)
+        {
+            IA_attackAction.action.started += AttackStarted;
+        }
+        
         _health.OnDeath.AddListener(Death);
     }
 
@@ -40,6 +57,8 @@ public class PlayerController : MonoBehaviour
     {
         _canMove = false;
         _animator.SetTrigger("OnDeath");
+        DisableAllBindings();
+
     }
 
     private void Update()
@@ -78,7 +97,7 @@ public class PlayerController : MonoBehaviour
     {
         _animator.SetInteger("randomAttack", (int)Mathf.Floor(Random.Range(1, 5)));
         _animator.SetTrigger("OnAttack");
-        _weapon.StartCoroutine(_weapon.ActivateFor(0.5f));
+        _weapon.ActivateFor(0.5f);
     }
 
     void StartMove(InputAction.CallbackContext callback)
@@ -96,6 +115,23 @@ public class PlayerController : MonoBehaviour
     {
         _canMove = false;
         _moveDirection = Vector3.zero;
+    }
+
+    void DisableAllBindings()
+    {
+        IA_moveAction.action.started -= StartMove;
+        IA_moveAction.action.performed -= PerformMove;
+        IA_moveAction.action.canceled -= StopMove;
+        if (_weapon != null)
+        {
+            IA_attackAction.action.started -= AttackStarted;
+        }
+        _health.OnDeath.RemoveListener(Death);
+    }
+
+    private void OnDisable()
+    {
+        DisableAllBindings();
     }
 
     private void OnDrawGizmos()

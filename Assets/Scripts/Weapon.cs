@@ -1,19 +1,20 @@
+using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Weapon : MonoBehaviour
 {
-    // [SerializeField] Health _targetHealthComponent;
+    [SerializeField, Required] DamageSource _damageSource;
 
-    private void Update()
+    public void ActivateFor(float time)
     {
-        if (Input.GetMouseButtonDown(0))
+        if(time > 0)
         {
-            // _targetHealthComponent.TakeDamage(20);
+            _damageSource.StartCoroutine(_damageSource.ActivateFor(time));
         }
-
-        if (Input.GetKeyDown(KeyCode.Space))
+        else
         {
-            Destroy(this);
+            Debug.LogWarning("Attack time cannot be negative");
         }
     }
 }
