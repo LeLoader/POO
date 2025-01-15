@@ -12,20 +12,23 @@ public class PlayerController : MonoBehaviour
     [SerializeField] InputActionAsset IAA_Player;
     [SerializeField] InputActionReference IA_moveAction;
     [SerializeField] InputActionReference IA_attackAction;
+    [SerializeField] InputActionReference IA_jumpAction;
     [SerializeField] CinemachineCamera _camera;
     [SerializeField] Rigidbody _rigidbody;
     [SerializeField] GameObject _playerObject;
     [SerializeField] Animator _animator;
     [SerializeField] Health _health;
     [SerializeField] Weapon _weapon;
+    bool inverseGravity;
 
     [SerializeField, Tooltip("In m/s")] int _movementSpeed;
-    public int MovementSpeed { 
-        get 
-        { 
-            return _movementSpeed; 
+    public int MovementSpeed
+    {
+        get
+        {
+            return _movementSpeed;
         }
-        set 
+        set
         {
             if (value > 0)
             {
@@ -45,11 +48,12 @@ public class PlayerController : MonoBehaviour
         IA_moveAction.action.started += StartMove;
         IA_moveAction.action.performed += PerformMove;
         IA_moveAction.action.canceled += StopMove;
-        if(_weapon != null)
+        IA_jumpAction.action.started += ChangeGravity;
+        if (_weapon != null)
         {
             IA_attackAction.action.started += AttackStarted;
         }
-        
+
         _health.OnDeath.AddListener(Death);
     }
 
@@ -79,17 +83,17 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (inverseGravity) _playerObject.transform.rotation = Quaternion.RotateTowards(_playerObject.transform.rotation, Quaternion.LookRotation(_wantedDirection, Vector3.up) * Quaternion.Euler(0, 0, 180), _rotationSpeed * Time.fixedDeltaTime);
+        else _playerObject.transform.rotation = Quaternion.RotateTowards(_playerObject.transform.rotation, Quaternion.LookRotation(_wantedDirection, Vector3.up), _rotationSpeed * Time.fixedDeltaTime);
+
         if (_canMove)
         {
             _wantedDirection = _moveDirection.x * _camera.transform.right + _moveDirection.z * _camera.transform.forward;
             _wantedDirection.Normalize();
             _wantedDirection.y = 0;
             _rigidbody.AddForce(_movementSpeed * _playerObject.transform.forward, ForceMode.VelocityChange);
-            var rot = Quaternion.FromToRotation(_playerObject.transform.forward, _wantedDirection);
-            if (_playerObject.transform.rotation != Quaternion.LookRotation(_wantedDirection, Vector3.up))
-            {
-                _playerObject.transform.rotation = Quaternion.RotateTowards(_playerObject.transform.rotation, Quaternion.LookRotation(_wantedDirection, Vector3.up), _rotationSpeed * Time.fixedDeltaTime);
-            }
+            //var rot = Quaternion.FromToRotation(_playerObject.transform.forward, _wantedDirection);
+
         }
     }
 
@@ -117,11 +121,18 @@ public class PlayerController : MonoBehaviour
         _moveDirection = Vector3.zero;
     }
 
+    void ChangeGravity(InputAction.CallbackContext callback)
+    {
+        Physics.gravity = -Physics.gravity;
+        inverseGravity = !inverseGravity;
+    }
+
     void DisableAllBindings()
     {
         IA_moveAction.action.started -= StartMove;
         IA_moveAction.action.performed -= PerformMove;
         IA_moveAction.action.canceled -= StopMove;
+        IA_jumpAction.action.started -= ChangeGravity;
         if (_weapon != null)
         {
             IA_attackAction.action.started -= AttackStarted;
@@ -140,5 +151,17 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawLine(_playerObject.transform.position, _playerObject.transform.position + _playerObject.transform.forward);
         Gizmos.color = Color.red;
         Gizmos.DrawLine(_playerObject.transform.position, _playerObject.transform.position + _wantedDirection);
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.BeginVertical();
+
+        GUILayout.Label("Actual rotation quat:" + _playerObject.transform.rotation.ToString());
+        GUILayout.Label("Actual rotation euler:" + _playerObject.transform.rotation.eulerAngles.ToString());
+        GUILayout.Label("Wanted rotation quat:" + Quaternion.LookRotation(_wantedDirection, Vector3.up).ToString());
+        GUILayout.Label("Wanted rotation euler(maybe not):" + _wantedDirection);
+
+        GUILayout.EndVertical();
     }
 }
