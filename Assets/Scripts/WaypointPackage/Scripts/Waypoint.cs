@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Waypoint : MonoBehaviour
 {
@@ -89,6 +90,15 @@ public class Waypoint : MonoBehaviour
     public void ChangeName(string value)
     {
         name = value;
+    }
+
+    public void ChangeColor(Color color)
+    {
+        Color = color;
+        mapRepresentation.GetComponent<Image>().color = color;  
+        managerRepresentation.GetComponent<Image>().color = color;
+        compassRepresentation.GetComponent<Image>().color = color;
+        GetComponentInChildren<MeshRenderer>().material.color = color;
     }
 
     public void Delete(bool destroyGameObject)

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   label: DefaultWaypointName
-  color: {r: 0.79757595, g: 0, b: 1, a: 1}
+  color: {r: 0.22974515, g: 1, b: 0, a: 1}
 --- !u!1 &6596323330887205460
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,7 +111,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: e912ff477d2ee5c4cb8d0e4756913919, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

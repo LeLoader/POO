@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ public class WaypointManager : MonoBehaviour
     [SerializeField] List<Waypoint> waypoints;
     [SerializeField] GameObject PFBwaypoint;
     [SerializeField] Transform whereToSpawn;
-    
+
     [Header("Compass")]
     [SerializeField] Transform pov;
     [SerializeField] Camera mainCamera;
@@ -24,12 +25,29 @@ public class WaypointManager : MonoBehaviour
 
     [Header("MapScreen")]
     [SerializeField] GameObject mapScreen;
-    [SerializeField] GameObject mapWaypointsWrapper;
+    [SerializeField] GameObject mapObjectsWrapper;
     [SerializeField] GameObject PFBmapWaypointUI;
+    [SerializeField] float distanceFactor = 10;
+    [SerializeField] GameObject playerRepresentation;
+    [SerializeField] GameObject player;
+    [Space]
+    [SerializeField] GameObject PFBmarker;
+    [SerializeField] float timeBetweenMarkers = 5;
+    [SerializeField] int maxNumberOfMarkers = 10;
+
     public bool IsUIOpen { get; private set; }
     public bool IsMapOpen { get; private set; }
 
-
+    List<Color> colors = new List<Color>()
+    {
+        Color.red,
+        Color.yellow,
+        Color.green,
+        Color.cyan,
+        Color.blue,
+        Color.magenta,
+        Color.black,
+    };
     private void Awake()
     {
         Waypoint.OnWaypointDeleted += OnWaypointDeleted;
@@ -50,35 +68,50 @@ public class WaypointManager : MonoBehaviour
 
     private void Start()
     {
-        foreach (var waypoint in FindObjectsByType<Waypoint>(FindObjectsSortMode.None)){
+        foreach (var waypoint in FindObjectsByType<Waypoint>(FindObjectsSortMode.None))
+        {
             OnWaypointCreated(waypoint);
         }
+        StartCoroutine(PlaceMarker());
     }
 
     private void Update()
     {
         foreach (var waypoint in waypoints)
         {
-            //Vector3 newPos = new(waypoint.GetAngle(pov) * pixelPerDegree, waypoint.CompassRepresentation.transform.localPosition.y, 0);
-            //waypoint.CompassRepresentation.transform.localPosition = newPos;
+            Vector3 newPos = new(waypoint.GetAngle(mainCamera.transform) * pixelPerDegree, waypoint.CompassRepresentation.transform.localPosition.y, 0);
+            waypoint.CompassRepresentation.transform.localPosition = newPos;
 
-            Vector3 screenPos = mainCamera.WorldToScreenPoint(waypoint.transform.position);
-            Vector3 newPos = new(screenPos.x, waypoint.CompassRepresentation.transform.position.y, 0);
-            waypoint.CompassRepresentation.transform.position = newPos;
-
-            Vector3 newMapPos = waypoint.transform.position - mainCamera.transform.position;
-            Vector3 newRot = new(0, 0, mainCamera.transform.rotation.y);
-            Vector3 finalPosition = Quaternion.Euler(newRot) * (newMapPos * 10);
-            waypoint.MapRepresentation.transform.localPosition = finalPosition;
+            //{ // Compass
+            //    Vector3 screenPos = mainCamera.WorldToScreenPoint(waypoint.transform.position);
+            //    Vector3 newPos = new(screenPos.x, waypoint.CompassRepresentation.transform.position.y, 0);
+            //    waypoint.CompassRepresentation.transform.position = newPos;
+            //}       
         }
 
-        if (Input.GetKeyDown(KeyCode.Z)) 
+        { // Player on map
+            playerRepresentation.transform.localPosition = new Vector2(player.transform.position.x, player.transform.position.z);
+            playerRepresentation.transform.rotation = Quaternion.AngleAxis(mainCamera.transform.rotation.eulerAngles.y, Vector3.back);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Z)) //W 
         {
             ToggleUI();
         }
-        if (Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKeyDown(KeyCode.M))// ,
         {
             ToggleMap();
+        }
+    }
+
+    private IEnumerator PlaceMarker()
+    {
+        while (true)
+        {
+            var obj = Instantiate(PFBmarker, mapObjectsWrapper.transform);
+            obj.transform.localPosition = playerRepresentation.transform.localPosition;
+            obj.GetComponent<Marker>().CallDestroyIn(timeBetweenMarkers * maxNumberOfMarkers);
+            yield return new WaitForSeconds(timeBetweenMarkers);
         }
     }
 
@@ -98,22 +131,33 @@ public class WaypointManager : MonoBehaviour
         waypoint.WaypointUI = waypoint.ManagerRepresentation.GetComponent<WaypointUI>();
         waypoint.WaypointUI.colorImage.color = waypoint.Color;
         waypoint.WaypointUI.labelText.text = waypoint.Label;
-        waypoint.WaypointUI.deleteButton.onClick.AddListener(() => { 
-            waypoint.Delete(false); 
+        waypoint.WaypointUI.deleteButton.onClick.AddListener(() =>
+        {
+            waypoint.Delete(false);
         });
-        waypoint.WaypointUI.forceDeleteButton.onClick.AddListener(() => {
+        waypoint.WaypointUI.forceDeleteButton.onClick.AddListener(() =>
+        {
             waypoint.Delete(true);
         });
-        waypoint.WaypointUI.changeNameButton.onClick.AddListener(() => {
+        waypoint.WaypointUI.changeNameButton.onClick.AddListener(() =>
+        {
             // CHANGE NAME
         });
-        waypoint.WaypointUI.changeColorButton.onClick.AddListener(() => {
-            // CHANGE COLOR
+        waypoint.WaypointUI.changeColorButton.onClick.AddListener(() =>
+        {
+            CycleThroughColor(waypoint);
         });
 
-        waypoint.MapRepresentation = Instantiate(PFBmapWaypointUI, mapWaypointsWrapper.transform);
+        waypoint.MapRepresentation = Instantiate(PFBmapWaypointUI, mapObjectsWrapper.transform);
+        waypoint.MapRepresentation.transform.position = new Vector2(waypoint.transform.position.x, waypoint.transform.position.z);
         WaypointUI waypointui = waypoint.ManagerRepresentation.GetComponent<WaypointUI>();
         waypointui.colorImage.color = waypoint.Color;
+    }
+
+    private void CycleThroughColor(Waypoint waypoint)
+    {
+        int rdm = Random.Range(0, colors.Count);
+        waypoint.ChangeColor(colors[rdm]);
     }
 
     private void OnWaypointDeleted(Waypoint waypoint)
